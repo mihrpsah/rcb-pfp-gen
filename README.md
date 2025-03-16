@@ -1,102 +1,113 @@
 # RCB Profile Picture Generator
 
-A web application that allows users to upload their pictures and replace the background with RCB-themed backgrounds.
+A web application that allows users to upload their photos and generate profile pictures with custom backgrounds for the RCB community.
 
 ## Features
 
-- Upload your photo
-- Automatically remove the background using U2-Net
-- Replace with RCB-themed backgrounds
-- Download the generated profile picture
+- Upload and crop user photos
+- Select from a variety of RCB-themed backgrounds
+- Automatic background removal using U2-Net AI model
+- Combine user photos with selected backgrounds
+- Download generated profile pictures
 
-## Tech Stack
-
-- **Frontend**: React with Chakra UI
-- **Backend**: Flask
-- **Background Removal**: U2-Net
-
-## Setup Instructions
-
-### Quick Start
-
-The easiest way to run the application is using the provided script:
+## Project Structure
 
 ```
-./run.sh
+rcb-pfp-gen/
+├── frontend/           # React frontend application
+├── backend/            # Flask API server
+├── bg/                 # Background images
+├── docker-compose.yml  # Docker configuration
+└── DEPLOYMENT.md       # Detailed deployment guide
 ```
 
-This will set up everything and start both the backend and frontend servers.
+## Prerequisites
 
-### Manual Setup
+- Node.js 14+ for frontend
+- Python 3.9+ for backend
+- Docker and Docker Compose (optional, for containerized deployment)
 
-If you encounter issues with the quick start, you can run the components separately:
+## Quick Start
 
-#### Backend Setup
+### Local Development
 
-1. Create a virtual environment:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/rcb-pfp-gen.git
+   cd rcb-pfp-gen
    ```
+
+2. Set up the frontend:
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
+
+3. Set up the backend:
+   ```bash
+   cd backend
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-2. Install dependencies:
-   ```
    pip install -r requirements.txt
-   ```
-
-3. Download the U2-Net model:
-   ```
-   cd backend
-   python download_model.py
-   cd ..
-   ```
-
-4. Start the backend server:
-   ```
-   ./start_backend.sh
-   ```
-   Or manually:
-   ```
-   cd backend
+   python download_model.py  # Download the U2-Net model
    python app.py
    ```
 
-#### Frontend Setup
+4. Add background images to the `bg` directory.
 
-1. Navigate to the frontend directory:
-   ```
-   cd frontend
-   ```
+5. Access the application at http://localhost:3000
 
-2. Install dependencies:
-   ```
-   npm install
-   ```
+### Docker Deployment
 
-3. Start the development server:
-   ```
-   npm start
-   ```
-   Or use the script:
-   ```
-   ./start_frontend.sh
-   ```
+For containerized deployment:
 
-## Troubleshooting
-
-If you encounter any issues, please refer to the [Troubleshooting Guide](TROUBLESHOOTING.md) for solutions to common problems.
-
-You can also check if the backend is running correctly with:
+```bash
+./docker-deploy.sh
 ```
-./check_backend.sh
-```
+
+Access the application at http://localhost
 
 ## Deployment
 
-The application is designed to be cost-effective for deployment:
-- The frontend can be deployed on static hosting services like Netlify or Vercel
-- The backend can be deployed on a small instance on services like Heroku, Railway, or a small VM
+### Preparing for Deployment
+
+We've included several tools to help you deploy the application:
+
+1. **Deployment Check**: Run `./deployment-check.sh` to verify all necessary files are present.
+
+2. **Deployment Preparation**: Run `./prepare-deployment.sh` to prepare both frontend and backend for deployment.
+
+3. **Deployment Checklist**: Use `DEPLOYMENT_CHECKLIST.md` to ensure all steps are completed.
+
+4. **Detailed Guide**: For comprehensive instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+### Deployment Options
+
+1. **Separate Deployment (Recommended)**:
+   - Deploy the frontend to a static hosting service (Netlify, Vercel, GitHub Pages)
+   - Deploy the backend to a Python-compatible cloud platform (Heroku, Railway, Render)
+
+2. **Docker Deployment**:
+   - Deploy both frontend and backend using Docker with the provided configuration
+
+## Technology Stack
+
+### Frontend
+- React.js
+- Axios for API requests
+- React Cropper for image cropping
+
+### Backend
+- Flask for the API server
+- U2-Net for background removal
+- Pillow for image processing
 
 ## License
 
-MIT 
+[MIT License](LICENSE)
+
+## Acknowledgements
+
+- [U2-Net](https://github.com/xuebinqin/U-2-Net) for the background removal model
+- RCB community for inspiration and support 

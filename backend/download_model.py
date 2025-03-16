@@ -1,44 +1,55 @@
 import os
 import gdown
 import torch
-import sys
+from pathlib import Path
 
-MODEL_DIR = 'saved_models'
-MODEL_PATH = os.path.join(MODEL_DIR, 'u2net.pth')
-
-# Create directory if it doesn't exist
-os.makedirs(MODEL_DIR, exist_ok=True)
-
-def download_model():
-    if os.path.exists(MODEL_PATH):
-        print(f"Model already exists at {MODEL_PATH}")
+def download_u2net_model():
+    """
+    Downloads the U2-Net model if it doesn't exist.
+    """
+    print("Checking for U2-Net model...")
+    
+    # Create the model directory if it doesn't exist
+    model_dir = Path("saved_models")
+    model_dir.mkdir(exist_ok=True)
+    
+    # Path to the model file
+    model_path = model_dir / "u2net.pth"
+    
+    # Check if the model already exists
+    if model_path.exists():
+        print(f"Model already exists at {model_path}")
         return
     
-    print("Downloading U2-Net model...")
-    # U2-Net model Google Drive ID
-    url = 'https://drive.google.com/uc?id=1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ'
+    # Google Drive ID for the U2-Net model
+    u2net_model_id = "1tCU5MM1LhRgGou5OpmpjBQbSrYIUoYab"
     
+    print(f"Downloading U2-Net model to {model_path}...")
     try:
-        gdown.download(url, MODEL_PATH, quiet=False)
-        print(f"Model downloaded successfully to {MODEL_PATH}")
+        gdown.download(id=u2net_model_id, output=str(model_path), quiet=False)
+        print("Model downloaded successfully!")
         
         # Verify the model can be loaded
         try:
-            if sys.version_info >= (3, 8):
-                # For Python 3.8+
-                model_state = torch.load(MODEL_PATH, map_location='cpu')
-                print("Model verified successfully!")
-            else:
-                # For older Python versions
-                model = torch.load(MODEL_PATH, map_location='cpu')
-                print("Model verified successfully!")
+            # Try to load the model to verify it's valid
+            model = torch.load(model_path, map_location=torch.device('cpu'))
+            print("Model verified successfully!")
         except Exception as e:
             print(f"Error verifying model: {e}")
-            if os.path.exists(MODEL_PATH):
-                os.remove(MODEL_PATH)
-            print("Removed corrupted model file. Please try downloading again.")
+            # If verification fails, delete the potentially corrupted file
+            if model_path.exists():
+                os.remove(model_path)
+            print("Corrupted model file removed. Please try downloading again.")
+            return False
+        
+        return True
     except Exception as e:
         print(f"Error downloading model: {e}")
+        return False
 
 if __name__ == "__main__":
-    download_model() 
+    success = download_u2net_model()
+    if success:
+        print("U2-Net model is ready to use!")
+    else:
+        print("Failed to download U2-Net model. Please check your internet connection and try again.")

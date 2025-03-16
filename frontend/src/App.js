@@ -19,6 +19,9 @@ import axios from 'axios';
 import ImageUploader from './components/ImageUploader';
 import BackgroundSelector from './components/BackgroundSelector';
 
+// Get API URL from environment variables or default to localhost
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function App() {
   const [uploadedImage, setUploadedImage] = useState(null);
   const [selectedBackground, setSelectedBackground] = useState(null);
@@ -33,7 +36,7 @@ function App() {
     const fetchBackgrounds = async () => {
       setIsLoading(true);
       try {
-        const response = await axios.get('/api/backgrounds');
+        const response = await axios.get(`${API_URL}/api/backgrounds`);
         setBackgrounds(response.data);
         if (response.data.length > 0) {
           setSelectedBackground(response.data[0].name);
@@ -82,7 +85,7 @@ function App() {
     formData.append('background', selectedBackground);
 
     try {
-      const response = await axios.post('/api/process', formData, {
+      const response = await axios.post(`${API_URL}/api/process`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

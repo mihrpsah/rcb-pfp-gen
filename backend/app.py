@@ -1,7 +1,7 @@
 import os
 import io
 import base64
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import numpy as np
 from PIL import Image
@@ -9,6 +9,10 @@ import torch
 from torchvision import transforms
 from model import U2NET
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Handle different Pillow versions
 try:
@@ -20,9 +24,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuration
-UPLOAD_FOLDER = 'uploads'
-BG_FOLDER = '../bg'
-MODEL_DIR = 'saved_models'
+UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
+BG_FOLDER = os.environ.get('BG_FOLDER', '../bg')
+MODEL_DIR = os.environ.get('MODEL_DIR', 'saved_models')
 MODEL_PATH = os.path.join(MODEL_DIR, 'u2net.pth')
 
 # Create directories if they don't exist
@@ -73,6 +77,14 @@ def normalize_prediction(prediction):
     ma = torch.max(prediction)
     mi = torch.min(prediction)
     return (prediction - mi) / (ma - mi)
+
+# Root route for health check
+@app.route('/')
+def index():
+    return jsonify({
+        'status': 'ok',
+        'message': 'RCB Profile Picture Generator API is running'
+    })
 
 # Get available backgrounds
 @app.route('/api/backgrounds', methods=['GET'])
@@ -173,4 +185,7 @@ def process_image():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=os.environ.get('DEBUG', 'True').lower() == 'true',
+            host='0.0.0.0',
+            port=port) 
