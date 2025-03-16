@@ -19,8 +19,12 @@ import axios from 'axios';
 import ImageUploader from './components/ImageUploader';
 import BackgroundSelector from './components/BackgroundSelector';
 
-// Get API URL from environment variables or default to localhost
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Get API URL from environment variables or default to API path
+const API_URL = process.env.REACT_APP_API_URL 
+  ? (process.env.REACT_APP_API_URL.startsWith('http') 
+      ? process.env.REACT_APP_API_URL 
+      : `https://${process.env.REACT_APP_API_URL}`)
+  : '';
 
 function App() {
   const [uploadedImage, setUploadedImage] = useState(null);
