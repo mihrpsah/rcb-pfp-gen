@@ -91,6 +91,11 @@ We've included several tools to help you deploy the application:
 2. **Docker Deployment**:
    - Deploy both frontend and backend using Docker with the provided configuration
 
+3. **Render Deployment (Easiest)**:
+   - One-click deployment to Render using the provided `render.yaml` file
+   - Or use the Render-specific deployment script: `cd backend && ./render-deploy.sh`
+   - Follow the instructions provided by the script
+
 ## Technology Stack
 
 ### Frontend

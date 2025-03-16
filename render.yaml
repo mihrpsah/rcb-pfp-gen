@@ -1,0 +1,37 @@
+services:
+  # Backend API service
+  - type: web
+    name: rcb-pfp-generator-backend
+    env: python
+    region: oregon  # Change to your preferred region
+    plan: free  # Change to a paid plan for production
+    buildCommand: cd backend && pip install -r requirements.txt && python download_model.py
+    startCommand: cd backend && gunicorn app:app
+    healthCheckPath: /
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: UPLOAD_FOLDER
+        value: uploads
+      - key: BG_FOLDER
+        value: bg
+      - key: MODEL_DIR
+        value: saved_models
+    disk:
+      name: bg-images
+      mountPath: /app/backend/bg
+      sizeGB: 1  # Adjust size as needed
+
+  # Frontend static site
+  - type: web
+    name: rcb-pfp-generator-frontend
+    env: static
+    region: oregon  # Change to your preferred region
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          name: rcb-pfp-generator-backend
+          type: web
+          property: url 

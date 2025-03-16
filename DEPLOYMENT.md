@@ -88,6 +88,86 @@ This will download the U2-Net model and create a production .env file.
 4. Set the build command: `pip install -r requirements.txt`
 5. Set the start command: `gunicorn app:app`
 
+### Detailed Render Deployment Guide
+
+Render is a great option for deploying your Flask backend. Here's a detailed guide:
+
+1. **Create a Render Account**
+   - Go to [render.com](https://render.com/)
+   - Sign up using your email, GitHub, or Google account
+
+2. **Create a New Web Service**
+   - Click on the "New +" button and select "Web Service"
+   - Connect your Git repository
+   - Select the repository containing your RCB Profile Picture Generator
+
+3. **Configure the Web Service**
+   - **Name**: `rcb-pfp-generator-backend` (or any name you prefer)
+   - **Environment**: `Python 3`
+   - **Region**: Choose the region closest to your users
+   - **Branch**: `main` (or your default branch)
+   - **Root Directory**: If your backend is in a subdirectory, specify it (e.g., `backend`)
+   - **Build Command**: 
+     ```
+     pip install -r requirements.txt && python download_model.py
+     ```
+   - **Start Command**: 
+     ```
+     gunicorn app:app
+     ```
+
+4. **Configure Environment Variables**
+   - Add the following environment variables:
+     - `DEBUG`: `False`
+     - `PORT`: Leave this blank (Render will set it automatically)
+     - `UPLOAD_FOLDER`: `uploads`
+     - `BG_FOLDER`: `bg`
+     - `MODEL_DIR`: `saved_models`
+
+5. **Configure Advanced Settings**
+   - Click on "Advanced" to expand additional settings
+   - Under "Health Check Path", enter `/` (this will use our root endpoint for health checks)
+   - Set the "Instance Type" to "Free" for testing, or choose a paid plan for production use
+
+6. **Handle the U2-Net Model**
+   - Our updated `download_model.py` script will attempt to download the model from multiple sources
+   - If all automatic downloads fail during deployment, you can:
+     - SSH into your Render instance using the Shell tab
+     - Manually download the model using:
+       ```bash
+       cd saved_models
+       curl -L https://github.com/xuebinqin/U-2-Net/releases/download/v1.0/u2net.pth -o u2net.pth
+       ```
+
+7. **Upload Background Images**
+   - In the Render dashboard, go to your web service
+   - Click on the "Shell" tab
+   - Create the background directory if it doesn't exist:
+     ```bash
+     mkdir -p bg
+     ```
+   - You can upload images using the Render shell, but it's easier to use the Render Disk feature:
+     - Go to "Disks" in the Render dashboard
+     - Create a new disk and attach it to your service
+     - Mount it at `/app/bg`
+     - Upload your background images to this disk
+
+8. **Verify the Deployment**
+   - Once deployment is complete, Render will provide a URL for your service
+   - Visit this URL in your browser to verify the API is running
+   - Test the `/api/backgrounds` endpoint to verify background images are accessible
+
+9. **Update Frontend Configuration**
+   - Update your frontend's `.env.production` file with the Render URL:
+     ```
+     REACT_APP_API_URL=https://your-render-service-url.onrender.com
+     ```
+
+10. **Troubleshooting**
+    - If you encounter memory issues, consider upgrading to a paid Render plan
+    - For cold start issues (free tier), implement a periodic ping to keep the service active
+    - For file storage, use Render Disks or a cloud storage service like AWS S3
+
 ### Step 3: Configure the Background Images
 
 Make sure to upload your background images to the `bg` directory on your server.
