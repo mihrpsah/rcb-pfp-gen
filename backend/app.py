@@ -11,7 +11,7 @@ from model import U2NET
 import json
 from dotenv import load_dotenv
 from flask_cors import CORS
-
+import datetime
 
 
 # Load environment variables
@@ -24,17 +24,19 @@ except AttributeError:
     LANCZOS = Image.Resampling.LANCZOS
 
 app = Flask(__name__)
-CORS(app, origins=["https://rcb.anirudhasah.com"])
+CORS(app, origins=["https://rcb.anirudhasah.com", "http://localhost:4321"])
 
 # Configuration
 UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
-BG_FOLDER = os.environ.get('BG_FOLDER', '../bg')
+GENERATED_FOLDER = os.environ.get('GENERATED_FOLDER', 'generated_images')
+BG_FOLDER = '../astro/src/assets/teams'
 MODEL_DIR = os.environ.get('MODEL_DIR', 'saved_models')
 MODEL_PATH = os.path.join(MODEL_DIR, 'u2net.pth')
 
 # Create directories if they don't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(MODEL_DIR, exist_ok=True)
+os.makedirs(GENERATED_FOLDER, exist_ok=True)
 
 # Initialize model
 model = None
@@ -89,29 +91,16 @@ def index():
         'message': 'RCB Profile Picture Generator API is running'
     })
 
-# Get available backgrounds
-@app.route('/api/backgrounds', methods=['GET'])
-def get_backgrounds():
-    backgrounds = []
-    for filename in os.listdir(BG_FOLDER):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-            with open(os.path.join(BG_FOLDER, filename), 'rb') as img_file:
-                base64_image = base64.b64encode(img_file.read()).decode('utf-8')
-                backgrounds.append({
-                    'name': filename,
-                    'preview': f"data:image/{filename.split('.')[-1]};base64,{base64_image}"
-                })
-    return jsonify(backgrounds)
-
 # Process the image
 @app.route('/api/process', methods=['POST'])
 def process_image():
-    if 'image' not in request.files or 'background' not in request.form:
-        return jsonify({'error': 'Missing image or background'}), 400
+    if 'image' not in request.files or 'background' not in request.form or 'team' not in request.form:
+        return jsonify({'error': 'Missing image, background or team'}), 400
 
     # Get the uploaded image
     file = request.files['image']
     background_name = request.form['background']
+    bg_folder = os.path.join(BG_FOLDER, request.form['team'])
 
     # Get resize percentage with default value of 70%
     resize_percentage = float(request.form.get('resize_percentage', 0.75))
@@ -120,7 +109,7 @@ def process_image():
     resize_percentage = max(0.1, min(1.0, resize_percentage))
 
     # Load background first to get its dimensions
-    background_path = os.path.join(BG_FOLDER, background_name)
+    background_path = os.path.join(bg_folder, background_name)
     background = Image.open(background_path).convert('RGB')
 
     # Read the user image
@@ -196,7 +185,6 @@ def process_image():
         # Calculate horizontal position to center
         x_position = (background.width - target_width) // 2
 
-
         y_position = background.height - target_height
 
         # Paste the resized foreground onto the new image
@@ -214,13 +202,22 @@ def process_image():
     # Convert to RGB for final output
     result = result.convert('RGB')
 
+    # Generate unique filename with timestamp
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"generated_image_{timestamp}.png"
+    filepath = os.path.join(GENERATED_FOLDER, filename)
+
+    # Save the image
+    result.save(filepath)
+
     # Convert to base64 for response
     buffered = io.BytesIO()
     result.save(buffered, format="PNG")
     img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     return jsonify({
-        'result': f"data:image/png;base64,{img_str}"
+        'result': f"data:image/png;base64,{img_str}",
+        'saved_path': filepath
     })
 
 if __name__ == '__main__':
